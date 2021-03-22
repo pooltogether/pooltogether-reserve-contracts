@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./IConfigurableReserve.sol";
 
-contract ConfigurableReserve is IConfigurableReserve, Ownable{
+contract ConfigurableReserve is IConfigurableReserve, Ownable {
     
-    mapping(address => uint256) prizePoolMantissas;
+    mapping(address => uint256) public prizePoolMantissas;
 
     constructor() Ownable(){
 
@@ -22,8 +22,10 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable{
 
         for(uint256 i = 0; i <  sources.length; i++){
             prizePoolMantissas[sources[i]] = _reserveRateMantissas[i];
+            emit ReserveRateMantissaSet(sources[i], _reserveRateMantissas[i]);
         }
     }
+
 
 
 }
