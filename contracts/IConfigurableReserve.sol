@@ -7,5 +7,5 @@ interface IConfigurableReserve {
   /// @notice Allows the owner of the contract to set the reserve rates for a given set of sources.
   /// @param sources The sources for which to set the reserve rates.
   /// @param _reserveRateMantissas The respective reserve rates for the sources.  Length must match sources param.
-  function setReserveRateMantissa(address[] sources, uint256[] _reserveRateMantissas) external;
+  function setReserveRateMantissa(address[] calldata sources, uint256[] calldata _reserveRateMantissas) external;
 }
