@@ -12,14 +12,8 @@ function green() {
 module.exports = async (hardhat) => {
   const { getNamedAccounts, deployments, ethers } = hardhat
   const { deploy } = deployments
-  const namedAccounts = await getNamedAccounts()
-  const { deployer, MultiSig } = await getNamedAccounts()
-  const namedSigners = await ethers.getNamedSigners()
-  const deployerSigner = namedSigners.deployer
+  const { deployer } = await getNamedAccounts()
 
-  const allReceivingEntities = {
-    Treasury: "5754000"
-  }
 
   dim(`Deployer is ${deployer}`)
   const isTestNet = await getChainId() == 1 ? false : true
