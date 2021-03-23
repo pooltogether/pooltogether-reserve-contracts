@@ -27,8 +27,6 @@ module.exports = async (hardhat) => {
       skipIfAlreadyDeployed: true
     })
     green(`Deployed Configurable Reserve at:  ${configurableReserve.address}`)
-  }
-
 
     
   green(`Done!`)
