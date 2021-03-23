@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.7.6;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -15,7 +14,6 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
         uint224 rateMantissa;
         bool useDefault;
     }
-
 
     /// @notice Storage of Reserve Rate Mantissa associated with a Prize Pool
     mapping(address => ReserveRate) public prizePoolMantissas;
@@ -73,12 +71,11 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     }
 
     /// @notice Uses the default reserve rate mantissa for an address
-    /// @param source Address for which to use the 
+    /// @param source Address for which to use the default reserve rate
     function useDefaultReserveRateMantissa(address source) external override onlyOwner{
         prizePoolMantissas[source].useDefault = true;
         UsingDefaultReserveRateMantissa(source);
     }
-
 
     /// @notice Only allows the owner or current strategist to call a function
     modifier onlyOwnerOrWithdrawStrategist(){
