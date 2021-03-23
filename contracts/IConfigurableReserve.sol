@@ -13,7 +13,7 @@ interface IConfigurableReserve {
   function setReserveRateMantissa(address[] calldata sources, uint256[] calldata _reserveRateMantissas) external;
 
   /// @notice Allows the owner of the contract to set the withdrawal strategy address
-  /// @param _strategist The new withdrawal strategist address
+  /// @param strategist The new withdrawal strategist address
   function setWithdrawStrategist(address strategist) external;
 
   /// @notice Calls withdrawReserve on the Prize Pool
@@ -31,7 +31,7 @@ interface IConfigurableReserve {
 
   /// @notice Emitted when the reserve rate mantissa was updated for a prize pool
   /// @param prizePool The prize pool address for which the rate was set
-  /// @param reserveRateMantissas The respective reserve rates for the prizepool.
+  /// @param reserveRateMantissa The respective reserve rate for the prizepool.
   event ReserveRateMantissaSet(address indexed prizePool, uint256 reserveRateMantissa);
 
    /// @notice Emitted when the withdraw strategist is changed
