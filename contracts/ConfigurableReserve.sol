@@ -45,7 +45,6 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @param sources The sources for which to set the reserve rates.
     /// @param _reserveRateMantissas The respective reserve rates for the sources.  Length must match sources param.
     function setReserveRateMantissa(address[] calldata sources, uint256[] calldata _reserveRateMantissas) external override onlyOwner{
-
         for(uint256 i = 0; i <  sources.length; i++){
             prizePoolMantissas[sources[i]].rateMantissa = uint224(_reserveRateMantissas[i]);
             emit ReserveRateMantissaSet(sources[i], _reserveRateMantissas[i]);

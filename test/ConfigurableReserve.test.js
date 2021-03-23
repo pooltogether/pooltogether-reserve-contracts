@@ -1,8 +1,6 @@
 const { expect } = require("chai");
 const { deployMockContract } = require("ethereum-waffle");
 const hardhat = require('hardhat');
-const deploy = require("../deploy/deploy");
-
 const { AddressZero } = require("ethers").constants
 
 const overrides = { gasLimit: 9500000 }
@@ -12,10 +10,9 @@ const SENTINEL = '0x0000000000000000000000000000000000000001'
 describe('Configurable Reserve', () => {
 
     let wallet, wallet2
-
     let provider
     let reserve
-    let prizePool
+
 
     before(async () => {
         [wallet, wallet2] = await hardhat.ethers.getSigners()
@@ -58,19 +55,30 @@ describe('Configurable Reserve', () => {
         it("does not allow non-owner to set the default rate" ,async () => {
             await expect(reserve.connect(wallet2).setDefaultReserveRateMantissa("44")).to.be.revertedWith("Ownable: caller is not the owner")
         })
+        it("returns the default rate" ,async () => {
+            await reserve.setDefaultReserveRateMantissa("900")
+            await expect(reserve.useDefaultReserveRateMantissa(SENTINEL)).to.emit(reserve, "UsingDefaultReserveRateMantissa").withArgs(SENTINEL)
+            expect(await reserve.reserveRateMantissa(SENTINEL)).to.equal("900")
+        })  
     })
 
     describe("withdrawReserve", ()=>{
-        it("allows withdraw reserve to be called on a prize pool", async ()=>{
-            const prizePoolInterface = await hre.artifacts.readArtifact("PrizePoolInterface")
-            const prizePool = await deployMockContract(wallet, prizePoolInterface.abi)
-            await prizePool.mock.withdrawReserve.returns(20)
+        let prizePoolInterface
+        let prizePool
 
-            expect(reserve.withdrawReserve(prizePool.address, AddressZero)).to.equal(20)
+        beforeEach(async()=>{
+            prizePoolInterface = await hre.artifacts.readArtifact("PrizePoolInterface")
+            prizePool = await deployMockContract(wallet, prizePoolInterface.abi)
         })
-        // it("does not allow non-owner to set the default rate" ,async () => {
-        //     expect(await reserve.connect(wallet2).setDefaultReserveRateMantissa("44")).to.be.revertedWith("Ownable: caller is not the owner")
-        // })
+
+        it("allows withdraw reserve to be called on a prize pool", async ()=>{
+            await prizePool.mock.withdrawReserve.revertsWithReason(20)
+            await expect(reserve.withdrawReserve(prizePool.address, AddressZero)).to.be.reverted
+        })
+        it("does not allow non-owner to call" ,async () => {
+            await expect(reserve.connect(wallet2).withdrawReserve(prizePool.address, AddressZero)).
+            to.be.revertedWith("!onlyOwnerOrWithdrawStrategist")
+        })
     })
 
 })
