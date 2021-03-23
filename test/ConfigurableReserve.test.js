@@ -43,4 +43,17 @@ describe('Reserve', () => {
             await expect(reserve.connect(wallet2).setReserveRateMantissa([AddressZero],[10])).to.be.revertedWith("Ownable: caller is not the owner")
         })
     })
+
+    describe("change the withdraw strategy address", ()=>{
+        it("allows the strategy to be changed by the owner ", async ()=>{
+            await expect(reserve.setWithdrawStrategist(AddressZero)).to.emit(reserve, "ReserveWithdrawStrategistChanged").withArgs(AddressZero)
+        })
+        it("retrieve the correct strategy" ,async () => {
+            expect(await reserve.withdrawStrategist()).to.equal(AddressZero)
+        })
+        it("should only be callable by owner" ,async () => {
+            await expect(reserve.connect(wallet2).setWithdrawStrategist(AddressZero)).to.be.revertedWith("Ownable: caller is not the owner")
+        })
+    })
+
 })

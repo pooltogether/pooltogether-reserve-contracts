@@ -16,6 +16,18 @@ interface IConfigurableReserve {
 
 
 
+  function setWithdrawStrategist(address strategist) external;
+  function withdrawReserve(address prizePool, address to) external returns (uint256);
+  function setDefaultReserveRateMantissa(uint224 _reserveRateMantissa) external;
+  function useDefaultReserveRateMantissa(address source) external;
+
+
   event ReserveRateMantissaSet(address indexed prizePool, uint256 reserveRateMantissa);
+
+  event ReserveWithdrawStrategistChanged(address indexed);
+
+  event DefaultReserveRateMantissaSet(uint256 rate);
+
+  event UsingDefaultReserveRateMantissa(address indexed source);
 
 }
