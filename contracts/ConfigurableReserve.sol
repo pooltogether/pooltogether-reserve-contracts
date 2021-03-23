@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -9,12 +10,6 @@ import "./IPrizePool.sol";
 ///@title implementation of IConfigurable reserve
 contract ConfigurableReserve is IConfigurableReserve, Ownable {
     
-    ///@notice struct to store the reserve rate mantissa for an address and a flag to indicate to use the default reserve rate
-    struct ReserveRate{
-        uint224 rateMantissa;
-        bool useDefault;
-    }
-
     /// @notice Storage of Reserve Rate Mantissa associated with a Prize Pool
     mapping(address => ReserveRate) public prizePoolMantissas;
 
@@ -32,7 +27,7 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @param source The source for which the reserve rate should be return.  These are normally prize pools.
     /// @return The reserve rate as a fixed point 18 number, like Ether.  A rate of 0.05 = 50000000000000000
     function reserveRateMantissa(address source) external override view returns (uint256){
-        if(prizePoolMantissas[source].useDefault == true){
+        if(prizePoolMantissas[source].useCustom == false){
             return uint256(defaultReserveRateMantissa);
         }
         // else return the custom rate
@@ -40,12 +35,14 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     }
 
     /// @notice Allows the owner of the contract to set the reserve rates for a given set of sources.
+    /// @dev Length must match sources param.
     /// @param sources The sources for which to set the reserve rates.
-    /// @param _reserveRateMantissas The respective reserve rates for the sources.  Length must match sources param.
-    function setReserveRateMantissa(address[] calldata sources, uint256[] calldata _reserveRateMantissas) external override onlyOwner{
+    /// @param _reserveRates The respective ReserveRates for the sources.  
+    function setReserveRateMantissa(address[] calldata sources,  uint224[] calldata _reserveRates, bool[] calldata useCustom) external override onlyOwner{
         for(uint256 i = 0; i <  sources.length; i++){
-            prizePoolMantissas[sources[i]].rateMantissa = uint224(_reserveRateMantissas[i]);
-            emit ReserveRateMantissaSet(sources[i], _reserveRateMantissas[i]);
+            prizePoolMantissas[sources[i]].rateMantissa = _reserveRates[i];
+            prizePoolMantissas[sources[i]].useCustom = useCustom[i];
+            emit ReserveRateMantissaSet(sources[i], _reserveRates[i], useCustom[i]);
         }
     }
 
@@ -68,13 +65,6 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     function setDefaultReserveRateMantissa(uint224 _reserveRateMantissa) external override onlyOwner{
         defaultReserveRateMantissa = _reserveRateMantissa;
         emit DefaultReserveRateMantissaSet(_reserveRateMantissa);
-    }
-
-    /// @notice Uses the default reserve rate mantissa for an address
-    /// @param source Address for which to use the default reserve rate
-    function useDefaultReserveRateMantissa(address source) external override onlyOwner{
-        prizePoolMantissas[source].useDefault = true;
-        UsingDefaultReserveRateMantissa(source);
     }
 
     /// @notice Only allows the owner or current strategist to call a function

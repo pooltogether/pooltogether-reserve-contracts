@@ -24,7 +24,7 @@ describe('Configurable Reserve', () => {
 
     describe("add reserveRate for address",()=>{
         it("can set reserve rate", async ()=>{
-            await expect(reserve.setReserveRateMantissa([SENTINEL],[10])).to.emit(reserve, "ReserveRateMantissaSet").withArgs(SENTINEL,"10")
+            await expect(reserve.setReserveRateMantissa([SENTINEL],["10"],[true])).to.emit(reserve, "ReserveRateMantissaSet").withArgs(SENTINEL,"10", true)
         })
 
         it("gets correct reserveRateMantissa", async ()=>{
@@ -32,7 +32,7 @@ describe('Configurable Reserve', () => {
         })
 
         it("should only be callable by owner", async ()=>{
-            await expect(reserve.connect(wallet2).setReserveRateMantissa([AddressZero],[10])).to.be.revertedWith("Ownable: caller is not the owner")
+            await expect(reserve.connect(wallet2).setReserveRateMantissa([AddressZero],[10],[false])).to.be.revertedWith("Ownable: caller is not the owner")
         })
     })
 
@@ -57,7 +57,7 @@ describe('Configurable Reserve', () => {
         })
         it("returns the default rate" ,async () => {
             await reserve.setDefaultReserveRateMantissa("900")
-            await expect(reserve.useDefaultReserveRateMantissa(SENTINEL)).to.emit(reserve, "UsingDefaultReserveRateMantissa").withArgs(SENTINEL)
+            await expect(reserve.setReserveRateMantissa([SENTINEL],[0],[false])).to.emit(reserve, "ReserveRateMantissaSet").withArgs(SENTINEL, 0, false)
             expect(await reserve.reserveRateMantissa(SENTINEL)).to.equal("900")
         })  
     })

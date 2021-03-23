@@ -1,16 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma experimental ABIEncoderV2;
 
 interface IConfigurableReserve {
+  
+  ///@notice struct to store the reserve rate mantissa for an address and a flag to indicate to use the default reserve rate
+  struct ReserveRate{
+      uint224 rateMantissa;
+      bool useCustom;
+  }
+
   /// @notice Returns the reserve rate for a particular source
   /// @param source The source for which the reserve rate should be return.  These are normally prize pools.
   /// @return The reserve rate as a fixed point 18 number, like Ether.  A rate of 0.05 = 50000000000000000
   function reserveRateMantissa(address source) external view returns (uint256);
 
   /// @notice Allows the owner of the contract to set the reserve rates for a given set of sources.
+  /// @dev Length must match sources param.
   /// @param sources The sources for which to set the reserve rates.
-  /// @param _reserveRateMantissas The respective reserve rates for the sources.  Length must match sources param.
-  function setReserveRateMantissa(address[] calldata sources, uint256[] calldata _reserveRateMantissas) external;
+  /// @param _reserveRates The respective ReserveRates for the sources.  
+  function setReserveRateMantissa(address[] calldata sources,  uint224[] calldata _reserveRates, bool[] calldata useCustom) external;
 
   /// @notice Allows the owner of the contract to set the withdrawal strategy address
   /// @param strategist The new withdrawal strategist address
@@ -25,14 +34,11 @@ interface IConfigurableReserve {
   /// @param _reserveRateMantissa The new default reserve rate mantissa
   function setDefaultReserveRateMantissa(uint224 _reserveRateMantissa) external;
   
-  /// @notice Uses the default reserve rate mantissa for an address
-  /// @param source Address for which to use the default reserve rate
-  function useDefaultReserveRateMantissa(address source) external;
-
   /// @notice Emitted when the reserve rate mantissa was updated for a prize pool
   /// @param prizePool The prize pool address for which the rate was set
   /// @param reserveRateMantissa The respective reserve rate for the prizepool.
-  event ReserveRateMantissaSet(address indexed prizePool, uint256 reserveRateMantissa);
+  /// @param useCustom Whether to use the custom reserve rate (true) or the default (false)
+  event ReserveRateMantissaSet(address indexed prizePool, uint256 reserveRateMantissa, bool useCustom);
 
    /// @notice Emitted when the withdraw strategist is changed
   /// @param strategist The updated strategist address
@@ -41,9 +47,5 @@ interface IConfigurableReserve {
   /// @notice Emitted when the default reserve rate mantissa was updated
   /// @param rate The new updated default mantissa rate
   event DefaultReserveRateMantissaSet(uint256 rate);
-
-  /// @notice Emitted when a prize pool uses the default reserve rate
-  /// @param source The prize pool address now using the default rate
-  event UsingDefaultReserveRateMantissa(address indexed source);
 
 }
