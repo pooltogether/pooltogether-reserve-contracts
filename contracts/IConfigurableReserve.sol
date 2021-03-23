@@ -40,7 +40,7 @@ interface IConfigurableReserve {
   /// @param useCustom Whether to use the custom reserve rate (true) or the default (false)
   event ReserveRateMantissaSet(address indexed prizePool, uint256 reserveRateMantissa, bool useCustom);
 
-   /// @notice Emitted when the withdraw strategist is changed
+  /// @notice Emitted when the withdraw strategist is changed
   /// @param strategist The updated strategist address
   event ReserveWithdrawStrategistChanged(address indexed strategist);
 
