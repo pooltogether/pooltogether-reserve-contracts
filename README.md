@@ -1,10 +1,11 @@
 # PoolTogether Reserve
+[![Coverage Status](https://coveralls.io/repos/github/pooltogether/pooltogether-reserve-contracts/badge.svg?branch=main)](https://coveralls.io/github/pooltogether/pooltogether-reserve-contracts?branch=main)
 
 PoolTogether captures a portion of the yield produced by the prize pools as "reserve".  The percentage of yield that is captured is called the "reserve rate".
 
 Currently there is a single, global reserve rate that is applied to all pools.  However, PoolTogether governance will like to set a higher reserve rate for governance-managed pools, and do not wish to affect community pools.
 
-This specification outlines a new Reserve interface that will allow governance to configure a reserve rate for each pool separately.
+The Configurable Reserve contracts outline a new Reserve interface that will allow governance to configure a reserve rate for each pool separately, as well as setting an opt-out default rate across all prize pools.
 
 # To deploy
 ## Locally
@@ -12,6 +13,9 @@ This specification outlines a new Reserve interface that will allow governance t
 
 # Testing
 `yarn && yarn test`
+
+## Coverage
+`yarn coverage`
 
 
 
