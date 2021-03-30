@@ -1,4 +1,5 @@
 {
+  "licence": "MIT",
   "scripts": {
     "compile": " hardhat compile",
     "deploy": "hardhat deploy --network",
