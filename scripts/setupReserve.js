@@ -122,29 +122,16 @@ async function runForkScript(){
       const completeAwardEvents = completeAwardReceipt.logs.reduce((array, log) =>
       { try { array.push(daiPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
       const daiReserveFeeEvent = completeAwardEvents.filter(event => event.name === 'ReserveFeeCaptured')
+      // console.log("completeAwardEvents ", completeAwardEvents)
+
       const daiAwardCapturedEvent = completeAwardEvents.filter(event => event.name === 'AwardCaptured')
       daiCaptured = daiAwardCapturedEvent[0].args.amount
       daiReserveFee = daiReserveFeeEvent[0].args.amount
     }
-    
-  
-    // now call withdraw reserve on timelock and burn reserve!
-    dim(`calling withdrawReserve on daiPrizePool`)
-    const daiPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(daiPrizePoolAddress, "0x0650d780292142835F6ac58dd8E2a336e87b4393")
-    const daiPrizePoolWithdrawReserveReceipt = await ethers.provider.getTransactionReceipt(daiPrizePoolWithdrawReserve.hash)
-    const completeDaiAwardEvents = daiPrizePoolWithdrawReserveReceipt.logs.reduce((array, log) =>
-        { try { array.push(daiPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
-
-    const reserveDaiWithdrawnEvent = completeDaiAwardEvents.filter(event => event.name === 'ReserveWithdrawal')
-    const daiPrizePoolWithdrawReserveAmount =  reserveDaiWithdrawnEvent[0].args.amount
-    
-    // console.log("DAI reserveWithdrawn event: ", daiPrizePoolWithdrawReserveAmount)
-    // console.log("DAI reserve fee was ", daiReserveFee)
-    // console.log("DAI captured award was ", daiCaptured)
 
     // calculating reserve rate mantissa
     // effective reserve mantissa = withdrawn reserve fee *1e18 / ( award captured + reserve fee) === configured resreve for prize pool
-    const daiCalculatedReserveRateMantissa = (daiPrizePoolWithdrawReserveAmount.mul(ethers.utils.parseEther("1"))).div((daiCaptured.add(daiReserveFee)))
+    const daiCalculatedReserveRateMantissa = (daiReserveFee.mul(ethers.utils.parseEther("1"))).div((daiCaptured.add(daiReserveFee)))
     console.log("dai reserve rate mantissa calculated as ", daiCalculatedReserveRateMantissa.toString())
     console.log("default reserve rate was ", defaultReserveRate.toString())
     
@@ -174,23 +161,12 @@ async function runForkScript(){
       dim(`usdc award completed`)
     }
 
-    // parse events and check default reserve rate is used
-    dim(`calling withdrawReserve on usdc`)
-    const usdcPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(usdcPrizePoolAddress, "0x0650d780292142835F6ac58dd8E2a336e87b4393") // to any address
-    const usdcPrizePoolWithdrawReserveReceipt = await ethers.provider.getTransactionReceipt(usdcPrizePoolWithdrawReserve.hash)
-    const completeAwardEvents = usdcPrizePoolWithdrawReserveReceipt.logs.reduce((array, log) =>
-        { try { array.push(usdcPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
-    
-    const reserveUsdcWithdrawnEvent = completeAwardEvents.filter(event => event.name === 'ReserveWithdrawal')
-    const usdcWithdrawReserveAmount = reserveUsdcWithdrawnEvent[0].args.amount
-    console.log("USDC reserveWithdrawn event amount: ", usdcWithdrawReserveAmount)
-
-
     // calculating reserve rate mantissa
     // effective reserve mantissa = withdrawn reserve fee *1e18 / ( award captured + reserve fee) === configured resreve for prize pool
-    const usdcCalculatedReserveRateMantissa = (usdcWithdrawReserveAmount.mul(ethers.utils.parseEther("1"))).div((usdcCaptured.add(usdcReserveFee)))
-    console.log("dai reserve rate mantissa calculated as ", usdcCalculatedReserveRateMantissa.toString())
-    console.log("default reserve rate was ", usdcReserveRate.toString())
+    const usdcCalculatedReserveRateMantissa = (usdcReserveFee.mul(ethers.utils.parseEther("1"))).div((usdcCaptured.add(usdcReserveFee)))
+    console.log("usdc reserve rate mantissa calculated as ", usdcCalculatedReserveRateMantissa.toString())
+    console.log("usdc reserve rate was set to", usdcReserveRate.toString())
+    green(`USDC POOL CHECK COMPLETE`)
 
 }
 runForkScript()
