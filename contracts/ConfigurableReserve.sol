@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IConfigurableReserve.sol";
 import "./IPrizePool.sol";
 
+import "hardhat/console.sol";
+
 ///@title implementation of IConfigurable reserve
 contract ConfigurableReserve is IConfigurableReserve, Ownable {
     
@@ -28,9 +30,13 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @return The reserve rate as a fixed point 18 number, like Ether.  A rate of 0.05 = 50000000000000000
     function reserveRateMantissa(address source) external override view returns (uint256){
         if(prizePoolMantissas[source].useCustom == false){
+            console.log("returning default rate for ", source);
+            console.log("default rate is ", defaultReserveRateMantissa);
             return uint256(defaultReserveRateMantissa);
         }
         // else return the custom rate
+        console.log("returning custom reserve rate for ", source);
+        console.log("reserve rate ",prizePoolMantissas[source].rateMantissa);
         return prizePoolMantissas[source].rateMantissa;
     }
 

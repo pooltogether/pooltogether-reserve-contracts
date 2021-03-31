@@ -1,18 +1,19 @@
 /*
-
     fork test script that sets up the reserve on mainnet for the governance pools.
     Configure a reserve for some of the gov pools, then reward all of them. 
     Ensure default is respected and custom reserve works.
 **/
 
+// To use: in another terminal window run `yarn start-fork`. Open a second window and run `yarn fork-run ./scripts/setupReserve.js`
+
 // 1. after fork, deploy ConfigurableReserve, from any signer.
 // 2. set default rate
 // 3. add the governace pools (dai, usdc, uni etc.)
-// 4. transfer ownership of the configurable reserve?
-
-// 5. set custom rate for one or two of the pools
-// 6. fast forward and capture reserve
+// 4. transfer ownership of the configurable reserve to the timelock
+// 5. set custom rate for one or two of the pools (done in step 3)
+// 6. fast forward and capture reserve by calling startAward() and completeAward()
 // 7. call withdrawReserve on both default and custom rate prize pools
+// 8. calculate if correct reserve rate has been extracted
 
 
 const chalk = require('chalk');
@@ -44,13 +45,9 @@ async function runForkScript(){
     })
     green(`Deployed Configurable Reserve at:  ${configurableReserveResult.address}`)
 
-    
-
     const configurableReserve = await ethers.getContract("ConfigurableReserve", deployer)
 
-    console.log("configurable reserve contract owner is ", await configurableReserve.owner())
-
-    // set global default reserve rate
+   // set global default reserve rate
     await configurableReserve.setDefaultReserveRateMantissa(ethers.utils.parseEther("0.05"))
 
     // add prize pools to cofigurable reserve
@@ -96,7 +93,11 @@ async function runForkScript(){
     dim(`Increasing time by ${remainingTime} seconds...`)
     await increaseTime(remainingTime.toNumber())
   
-    // if we cannot complete, let's startt it
+    let daiReserveFee
+    let usdcReserveFee
+
+
+    // if we cannot complete, let's start it
     if (await prizeStrategy.canStartAward()) {
       dim(`Starting award...`)
       await prizeStrategy.startAward()
@@ -108,6 +109,12 @@ async function runForkScript(){
       dim(`Completing award (will probably fail the first time on a fresh fork)....`)
       const completeAwardTx = await prizeStrategy.completeAward()
       const completeAwardReceipt = await ethers.provider.getTransactionReceipt(completeAwardTx.hash)
+      const completeAwardEvents = completeAwardReceipt.logs.reduce((array, log) =>
+      { try { array.push(prizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
+      const daiReserveFeeEvent = completeAwardEvents.filter(event => event.name === 'ReserveFeeCaptured')
+
+      daiReserveFee = (daiReserveFeeEvent[0].args.amount).toString()
+      console.log("the dai reserve fee was ", daiReserveFee)
     }
 
     //update reserve registry to point at ConfigurableReserve
