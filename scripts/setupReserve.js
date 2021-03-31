@@ -43,18 +43,21 @@ async function runForkScript(){
 
     const configurableReserve = await ethers.getContract("ConfigurableReserve", deployer)
 
-   // set global default reserve rate
-    await configurableReserve.setDefaultReserveRateMantissa(ethers.utils.parseEther("0.05"))
+    // set global default reserve rate
+    const defaultReserveRate = ethers.utils.parseEther("0.05")
+    await configurableReserve.setDefaultReserveRateMantissa(defaultReserveRate)
 
     // add prize pools to cofigurable reserve
-    const daiPrizePool = "0xEBfb47A7ad0FD6e57323C8A42B2E5A6a4F68fc1a"
-    const usdcPrizePool = "0xde9ec95d7708b8319ccca4b8bc92c0a3b70bf416"
+    const daiPrizePoolAddress = "0xEBfb47A7ad0FD6e57323C8A42B2E5A6a4F68fc1a"
+    const usdcPrizePoolAddress = "0xde9ec95d7708b8319ccca4b8bc92c0a3b70bf416"
     const uniPrizePool = "0x0650d780292142835F6ac58dd8E2a336e87b4393"
+
+    const usdcReserveRate = ethers.utils.parseEther("0.12")
 
     dim(`setting reserve rates`)
     const setReserveRatesResult = await configurableReserve.setReserveRateMantissa(
-        [daiPrizePool, usdcPrizePool,uniPrizePool],
-        [ethers.utils.parseEther("0.10"), ethers.utils.parseEther("0.12"), ethers.utils.parseEther("0.15")],
+        [daiPrizePoolAddress, usdcPrizePoolAddress,uniPrizePool],
+        [ethers.utils.parseEther("0.10"), usdcReserveRate, ethers.utils.parseEther("0.15")],
         [false, true, true]
     )
     green(`reserve rates set for prize pools`)
@@ -65,79 +68,135 @@ async function runForkScript(){
 
     // startAndComplete Award
     const compoundPrizePoolAbi = require("../node_modules/@pooltogether/pooltogether-contracts/abis/CompoundPrizePool.json")
-    const prizePool = await ethers.getContractAt(compoundPrizePoolAbi, daiPrizePool)
+    const daiPrizePool = await ethers.getContractAt(compoundPrizePoolAbi, daiPrizePoolAddress)
+    const usdcPrizePool = await ethers.getContractAt(compoundPrizePoolAbi, usdcPrizePoolAddress)
 
     // IMPERSONATE TIMELOCK
     await ethers.provider.send("hardhat_impersonateAccount", ["0x42cd8312D2BCe04277dD5161832460e95b24262E"])
     const timelockSigner = ethers.provider.getUncheckedSigner("0x42cd8312D2BCe04277dD5161832460e95b24262E")
   
     const periodicPrizeStrategy = require("../node_modules/@pooltogether/pooltogether-contracts/abis/PeriodicPrizeStrategy.json")
-    const prizeStrategy = await ethers.getContractAt(periodicPrizeStrategy, await prizePool.prizeStrategy(), timelockSigner)
+    const daiPrizeStrategy = await ethers.getContractAt(periodicPrizeStrategy, await daiPrizePool.prizeStrategy(), timelockSigner)
+    const usdcPrizeStrategy = await ethers.getContractAt(periodicPrizeStrategy, await usdcPrizePool.prizeStrategy(), timelockSigner)
 
     //fund timelock with Ether
     await ethers.provider.send("hardhat_impersonateAccount", ["0x564286362092D8e7936f0549571a803B203aAceD"])
     const binance = await ethers.provider.getUncheckedSigner('0x564286362092D8e7936f0549571a803B203aAceD')
     await binance.sendTransaction({ to: "0x42cd8312D2BCe04277dD5161832460e95b24262E", value: ethers.utils.parseEther('1000') })
 
-    dim(`now setting rng`)
-    if(await prizeStrategy.rng() != '0xb1D89477d1b505C261bab6e73f08fA834544CD21') {
-      dim(`Swapping RNG with blockhash on ${prizeStrategy.address}...`)
-      await prizeStrategy.setRngService('0xb1D89477d1b505C261bab6e73f08fA834544CD21')     // msg.sender needs to be the timelock
+    dim(`now setting rng for dai strategy`)
+    if(await daiPrizeStrategy.rng() != '0xb1D89477d1b505C261bab6e73f08fA834544CD21') {
+      dim(`Swapping RNG with blockhash on ${daiPrizeStrategy.address}...`)
+      await daiPrizeStrategy.setRngService('0xb1D89477d1b505C261bab6e73f08fA834544CD21')     // msg.sender needs to be the timelock
+    }
+    dim(`now setting rng for usdc strategy`)
+    if(await usdcPrizeStrategy.rng() != '0xb1D89477d1b505C261bab6e73f08fA834544CD21') {
+      dim(`Swapping RNG with blockhash on ${usdcPrizeStrategy.address}...`)
+      await usdcPrizeStrategy.setRngService('0xb1D89477d1b505C261bab6e73f08fA834544CD21')     // msg.sender needs to be the timelock
     }
     //update reserve registry to point at ConfigurableReserve
     const reserveRegistryAbi = require("../node_modules/@pooltogether/pooltogether-contracts/abis/Registry.json")
-    const reserveRegistryAddress = await prizePool.reserveRegistry()
+    const reserveRegistryAddress = await daiPrizePool.reserveRegistry()
     const reserveRegistryContract = await ethers.getContractAt(reserveRegistryAbi, reserveRegistryAddress, timelockSigner)
     await reserveRegistryContract.register(configurableReserve.address)
     green(`ReserveRegistry now pointing at ${configurableReserve.address}`)
 
-    const remainingTime = await prizeStrategy.prizePeriodRemainingSeconds()
+    const remainingTime = await daiPrizeStrategy.prizePeriodRemainingSeconds()
     dim(`Increasing time by ${remainingTime} seconds...`)
     await increaseTime(remainingTime.toNumber())
   
     let daiReserveFee
-    let usdcReserveFee
+    let daiCaptured 
     // if we cannot complete, let's start it
-    if (await prizeStrategy.canStartAward()) {
-      dim(`Starting award...`)
-      await prizeStrategy.startAward()
+    if (await daiPrizeStrategy.canStartAward()) {
+      dim(`Starting DAI award...`)
+      await daiPrizeStrategy.startAward()
       await increaseTime(1)
       await increaseTime(1)
     }
   
-    if (await prizeStrategy.canCompleteAward()) {
+    if (await daiPrizeStrategy.canCompleteAward()) {
       dim(`Completing award (will probably fail the first time on a fresh fork)....`)
-      const completeAwardTx = await prizeStrategy.completeAward()
+      const completeAwardTx = await daiPrizeStrategy.completeAward()
       const completeAwardReceipt = await ethers.provider.getTransactionReceipt(completeAwardTx.hash)
       const completeAwardEvents = completeAwardReceipt.logs.reduce((array, log) =>
-      { try { array.push(prizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
+      { try { array.push(daiPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
       const daiReserveFeeEvent = completeAwardEvents.filter(event => event.name === 'ReserveFeeCaptured')
-
-      daiReserveFee = (daiReserveFeeEvent[0].args.amount).toString()
-      console.log("the dai reserve fee was ", daiReserveFee)
+      const daiAwardCapturedEvent = completeAwardEvents.filter(event => event.name === 'AwardCaptured')
+      daiCaptured = daiAwardCapturedEvent[0].args.amount
+      daiReserveFee = daiReserveFeeEvent[0].args.amount
     }
-
+    
+  
     // now call withdraw reserve on timelock and burn reserve!
     dim(`calling withdrawReserve on daiPrizePool`)
-    const daiPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(daiPrizePool, "0x0650d780292142835F6ac58dd8E2a336e87b4393")
+    const daiPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(daiPrizePoolAddress, "0x0650d780292142835F6ac58dd8E2a336e87b4393")
     const daiPrizePoolWithdrawReserveReceipt = await ethers.provider.getTransactionReceipt(daiPrizePoolWithdrawReserve.hash)
     const completeDaiAwardEvents = daiPrizePoolWithdrawReserveReceipt.logs.reduce((array, log) =>
-        { try { array.push(prizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
+        { try { array.push(daiPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
 
     const reserveDaiWithdrawnEvent = completeDaiAwardEvents.filter(event => event.name === 'ReserveWithdrawal')
-    const daiPrizePoolWithdrawReserveAmount =  (reserveDaiWithdrawnEvent[0].args.amount).toString()
-    console.log("DAI reserveWithdrawn event: ",daiPrizePoolWithdrawReserveAmount)
+    const daiPrizePoolWithdrawReserveAmount =  reserveDaiWithdrawnEvent[0].args.amount
     
+    // console.log("DAI reserveWithdrawn event: ", daiPrizePoolWithdrawReserveAmount)
+    // console.log("DAI reserve fee was ", daiReserveFee)
+    // console.log("DAI captured award was ", daiCaptured)
+
+    // calculating reserve rate mantissa
+    // effective reserve mantissa = withdrawn reserve fee *1e18 / ( award captured + reserve fee) === configured resreve for prize pool
+    const daiCalculatedReserveRateMantissa = (daiPrizePoolWithdrawReserveAmount.mul(ethers.utils.parseEther("1"))).div((daiCaptured.add(daiReserveFee)))
+    console.log("dai reserve rate mantissa calculated as ", daiCalculatedReserveRateMantissa.toString())
+    console.log("default reserve rate was ", defaultReserveRate.toString())
+    
+    green(`DAI POOL CHECK COMPLETE`)
+
+    let usdcReserveFee
+    let usdcCaptured
+
+    // now award for usdc 
+    if (await usdcPrizeStrategy.canStartAward()) {
+      dim(`Starting USDC award...`)
+      await usdcPrizeStrategy.startAward()
+      await increaseTime(1)
+      await increaseTime(1)
+    }
+  
+    if (await usdcPrizeStrategy.canCompleteAward()) {
+      dim(`Completing award (will probably fail the first time on a fresh fork)....`)
+      const completeAwardTx = await usdcPrizeStrategy.completeAward()
+      dim(`usdc award completed`)
+      const completeAwardReceipt = await ethers.provider.getTransactionReceipt(completeAwardTx.hash)
+      const completeAwardEvents = completeAwardReceipt.logs.reduce((array, log) =>
+      { try { array.push(usdcPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
+      const usdcReserveFeeEvent = completeAwardEvents.filter(event => event.name === 'ReserveFeeCaptured')
+      const usdcAwardCapturedEvent = completeAwardEvents.filter(event => event.name === 'AwardCaptured')
+      usdcCaptured = usdcAwardCapturedEvent[0].args.amount
+      usdcReserveFee = usdcReserveFeeEvent[0].args.amount
+      dim(`usdc award completed`)
+    }
+
     // parse events and check default reserve rate is used
     dim(`calling withdrawReserve on usdc`)
-    const usdcPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(usdcPrizePool, "0x0650d780292142835F6ac58dd8E2a336e87b4393")
+    const usdcPrizePoolWithdrawReserve = await configurableReserve.connect(timelockSigner).withdrawReserve(usdcPrizePoolAddress, "0x0650d780292142835F6ac58dd8E2a336e87b4393") // to any address
     const usdcPrizePoolWithdrawReserveReceipt = await ethers.provider.getTransactionReceipt(usdcPrizePoolWithdrawReserve.hash)
     const completeAwardEvents = usdcPrizePoolWithdrawReserveReceipt.logs.reduce((array, log) =>
-        { try { array.push(prizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
+        { try { array.push(usdcPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
     
     const reserveUsdcWithdrawnEvent = completeAwardEvents.filter(event => event.name === 'ReserveWithdrawal')
-    const usdcWithdrawReserveAmount = (reserveUsdcWithdrawnEvent[0].args.amount).toString()
+    const usdcWithdrawReserveAmount = reserveUsdcWithdrawnEvent[0].args.amount
     console.log("USDC reserveWithdrawn event amount: ", usdcWithdrawReserveAmount)
+
+
+    // calculating reserve rate mantissa
+    // effective reserve mantissa = withdrawn reserve fee *1e18 / ( award captured + reserve fee) === configured resreve for prize pool
+    const usdcCalculatedReserveRateMantissa = (usdcWithdrawReserveAmount.mul(ethers.utils.parseEther("1"))).div((usdcCaptured.add(usdcReserveFee)))
+    console.log("dai reserve rate mantissa calculated as ", usdcCalculatedReserveRateMantissa.toString())
+    console.log("default reserve rate was ", usdcReserveRate)
 
 }
 runForkScript()
+
+
+// async function award(){
+
+// }
