@@ -88,7 +88,13 @@ async function runForkScript(){
       dim(`Swapping RNG with blockhash on ${prizeStrategy.address}...`)
       await prizeStrategy.setRngService('0xb1D89477d1b505C261bab6e73f08fA834544CD21')     // msg.sender needs to be the timelock
     }
-  
+    //update reserve registry to point at ConfigurableReserve
+    const reserveRegistryAbi = require("../node_modules/@pooltogether/pooltogether-contracts/abis/Registry.json")
+    const reserveRegistryAddress = await prizePool.reserveRegistry()
+    const reserveRegistryContract = await ethers.getContractAt(reserveRegistryAbi, reserveRegistryAddress, timelockSigner)
+    await reserveRegistryContract.register(configurableReserve.address)
+    green(`ReserveRegistry now pointing at ${configurableReserve.address}`)
+
     const remainingTime = await prizeStrategy.prizePeriodRemainingSeconds()
     dim(`Increasing time by ${remainingTime} seconds...`)
     await increaseTime(remainingTime.toNumber())
@@ -117,12 +123,7 @@ async function runForkScript(){
       console.log("the dai reserve fee was ", daiReserveFee)
     }
 
-    //update reserve registry to point at ConfigurableReserve
-    const reserveRegistryAbi = require("../node_modules/@pooltogether/pooltogether-contracts/abis/Registry.json")
-    const reserveRegistryAddress = await prizePool.reserveRegistry()
-    const reserveRegistryContract = await ethers.getContractAt(reserveRegistryAbi, reserveRegistryAddress, timelockSigner)
-    await reserveRegistryContract.register(configurableReserve.address)
-    green(`ReserveRegistry now pointing at ${configurableReserve.address}`)
+
 
     // now call withdraw reserve on timelock and burn reserve!
     dim(`calling withdrawReserve on daiPrizePool`)
@@ -146,9 +147,6 @@ async function runForkScript(){
     const usdcWithdrawReserveAmount = (reserveUsdcWithdrawnEvent[0].args.amount).toString()
     console.log("USDC reserveWithdrawn event amount: ", usdcWithdrawReserveAmount)
 
-
-
-
-
+   
 }
 runForkScript()

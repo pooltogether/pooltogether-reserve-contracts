@@ -63,6 +63,7 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @param prizePool The Prize Pool to withdraw reserve
     /// @param to The reserve transfer destination address
     function withdrawReserve(address prizePool, address to) external override onlyOwnerOrWithdrawStrategist returns (uint256){
+        console.log("withdrawn reserve called on prize pool", prizePool);
         return PrizePoolInterface(prizePool).withdrawReserve(to);
     }
 
