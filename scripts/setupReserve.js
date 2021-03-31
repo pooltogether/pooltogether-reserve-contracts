@@ -164,7 +164,6 @@ async function runForkScript(){
     if (await usdcPrizeStrategy.canCompleteAward()) {
       dim(`Completing award (will probably fail the first time on a fresh fork)....`)
       const completeAwardTx = await usdcPrizeStrategy.completeAward()
-      dim(`usdc award completed`)
       const completeAwardReceipt = await ethers.provider.getTransactionReceipt(completeAwardTx.hash)
       const completeAwardEvents = completeAwardReceipt.logs.reduce((array, log) =>
       { try { array.push(usdcPrizePool.interface.parseLog(log)) } catch (e) {} return array }, [])
@@ -191,12 +190,7 @@ async function runForkScript(){
     // effective reserve mantissa = withdrawn reserve fee *1e18 / ( award captured + reserve fee) === configured resreve for prize pool
     const usdcCalculatedReserveRateMantissa = (usdcWithdrawReserveAmount.mul(ethers.utils.parseEther("1"))).div((usdcCaptured.add(usdcReserveFee)))
     console.log("dai reserve rate mantissa calculated as ", usdcCalculatedReserveRateMantissa.toString())
-    console.log("default reserve rate was ", usdcReserveRate)
+    console.log("default reserve rate was ", usdcReserveRate.toString())
 
 }
 runForkScript()
-
-
-// async function award(){
-
-// }
