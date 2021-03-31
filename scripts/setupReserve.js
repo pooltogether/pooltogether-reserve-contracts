@@ -15,7 +15,6 @@
 // 7. call withdrawReserve on both default and custom rate prize pools
 // 8. calculate if correct reserve rate has been extracted
 
-
 const chalk = require('chalk');
 const hardhat = require('hardhat')
 const { increaseTime } = require('./helpers/increaseTime')
@@ -28,13 +27,10 @@ function green() {
   console.log(chalk.green.call(chalk, ...arguments))
 }
 
-
-
 async function runForkScript(){
     const { getNamedAccounts, deployments, ethers } = hardhat
     const { deploy } = deployments
     const { deployer } = await getNamedAccounts()
-
 
     dim(`Deployer is ${deployer}`)
     const configurableReserveResult = await deploy(`ConfigurableReserve`, {
@@ -101,8 +97,6 @@ async function runForkScript(){
   
     let daiReserveFee
     let usdcReserveFee
-
-
     // if we cannot complete, let's start it
     if (await prizeStrategy.canStartAward()) {
       dim(`Starting award...`)
@@ -122,8 +116,6 @@ async function runForkScript(){
       daiReserveFee = (daiReserveFeeEvent[0].args.amount).toString()
       console.log("the dai reserve fee was ", daiReserveFee)
     }
-
-
 
     // now call withdraw reserve on timelock and burn reserve!
     dim(`calling withdrawReserve on daiPrizePool`)
@@ -147,6 +139,5 @@ async function runForkScript(){
     const usdcWithdrawReserveAmount = (reserveUsdcWithdrawnEvent[0].args.amount).toString()
     console.log("USDC reserveWithdrawn event amount: ", usdcWithdrawReserveAmount)
 
-   
 }
 runForkScript()
