@@ -54,9 +54,3 @@ To test the contracts locally run:
 ## Coverage
 To display contract coverage run: 
 `yarn coverage`
-
-
-
-# Configurable Reserve Specification
-
-The interface [IConfigurableReserve.sol](./contracts/IConfigurableReserve.sol) implements the [ReserveInterface.sol](https://github.com/pooltogether/pooltogether-pool-contracts/blob/ba34ddfb7670c04d5c108e6ce485343b46b27a1e/contracts/reserve/ReserveInterface.sol).
