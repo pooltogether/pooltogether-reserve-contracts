@@ -19,6 +19,9 @@ module.exports = async (hardhat) => {
   const isTestNet = await getChainId() == 1 ? false : true
   dim(`Is TestNet? ${isTestNet}`)
 
+  console.log("deployer is ", deployer)
+
+
   // constants 
   const configurableReserve = await deploy(`ConfigurableReserve`, {
       contract: 'ConfigurableReserve',
