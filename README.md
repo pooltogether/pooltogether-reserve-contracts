@@ -90,7 +90,7 @@ The prize pools lookup where the reserve rates are set at the ReserveRegistry (h
 
 This Registry contract is owned by the PoolTogether governance system (specifically the timelock contract).
 
-This Registry can now be updated to instead point at the ConfigurableReserve by the timelock calling:
+This Registry can now be updated to instead point at the ConfigurableReserve (https://etherscan.io/address/0xd1797D46C3E825fce5215a0259D3426a5c49455C) by the timelock calling:
 
 ```solidity
 function register(address _pointer) external onlyOwner
