@@ -67,7 +67,7 @@ async function runForkScript(){
     green(`Timelock now owns ConfigurableReserve`)
 
     // startAndComplete Award
-    const compoundPrizePoolAbi = require("../node_modules/@pooltogether/pooltogether-contracts/abis/CompoundPrizePool.json")
+    const compoundPrizePoolAbi = (await hardhat.artifacts.readArtifact("CompoundPrizePool")).abi
     const daiPrizePool = await ethers.getContractAt(compoundPrizePoolAbi, daiPrizePoolAddress)
     const usdcPrizePool = await ethers.getContractAt(compoundPrizePoolAbi, usdcPrizePoolAddress)
 
