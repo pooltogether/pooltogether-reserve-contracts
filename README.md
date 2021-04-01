@@ -75,3 +75,11 @@ To test the contracts locally run:
 ## Coverage
 To display contract coverage run: 
 `yarn coverage`
+
+
+## To fork test
+After specifying the fork block in `hardhat.networks.js`, start the mainnet fork with:
+ `yarn start-fork`
+
+In another terminal window run:
+`yarn fork-run ./scripts/setupReserve.js`
