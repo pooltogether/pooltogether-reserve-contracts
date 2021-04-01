@@ -5,7 +5,7 @@ if(process.env.ALCHEMY_URL && process.env.FORK_ENABLED){
     chainId: 1,
     forking: {
       url: process.env.ALCHEMY_URL,
-      blockNumber: 12077369
+      blockNumber: 12155981
     },
     accounts: {
       mnemonic: process.env.HDWALLET_MNEMONIC
