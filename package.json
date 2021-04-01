@@ -1,6 +1,10 @@
 {
   "name": "@pooltogether/configurable-reserve-contracts",
   "licence": "MIT",
+  "version" : "1.0.0",
+  "description": "PoolTogether Configurable Reserve contracts",
+  "author": "Aodhgan Gleeson",
+  "git": "https://github.com/pooltogether/pooltogether-reserve-contracts",
   "scripts": {
     "compile": " hardhat compile",
     "deploy": "hardhat deploy --network",
@@ -31,5 +35,15 @@
     "solhint": "^3.3.4",
     "solidity-coverage": "^0.7.16",
     "hardhat-deploy-ethers": "^0.3.0-beta.7"
-  }
+  },
+  "files": [
+    "abis/**",
+    "build/**",
+    "artifacts/**",
+    "contracts/**",
+    "deployments/**",
+    "deploy/**",
+    "scripts/**",
+    "test/**"
+  ]
 }

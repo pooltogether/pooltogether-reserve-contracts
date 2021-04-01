@@ -83,3 +83,8 @@ After specifying the fork block in `hardhat.networks.js`, start the mainnet fork
 
 In another terminal window run:
 `yarn fork-run ./scripts/setupReserve.js`
+
+
+[0xEBfb47A7ad0FD6e57323C8A42B2E5A6a4F68fc1a, 0x0650d780292142835F6ac58dd8E2a336e87b4393,  0xde9ec95d7708b8319ccca4b8bc92c0a3b70bf416, 0xBC82221e131c082336cf698F0cA3EBd18aFd4ce7]
+[500000000000000000, 500000000000000000, 500000000000000000, 500000000000000000]
+[true, true, true, true]
