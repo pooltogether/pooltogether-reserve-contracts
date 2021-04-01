@@ -1,11 +1,13 @@
 {
+  "name": "@pooltogether/configurable-reserve-contracts",
   "licence": "MIT",
   "scripts": {
     "compile": " hardhat compile",
     "deploy": "hardhat deploy --network",
     "verify": "hardhat etherscan-verify --license MIT --solc-input --network",
     "clean": "rm -rf artifacts cache build",
-    "fork-run": "hardhat run --network fork",
+    "start-fork": "rm -rf deployments/localhost && FORK_ENABLED=true hardhat node --no-reset --no-deploy",
+    "fork-run": "hardhat run --network localhost",
     "prepack": "yarn clean && hardhat compile",
     "postpublish": "PACKAGE_VERSION=$(./scripts/package-version.sh) && git tag -ae v$PACKAGE_VERSION && git push --tags",
     "test": "solhint contracts/**/*.sol && hardhat test",
@@ -16,18 +18,18 @@
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^3.4.1",
+    "@pooltogether/pooltogether-contracts": "^3.3.7",
     "chai": "^4.3.4",
     "chalk": "^4.1.0",
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.0.32",
     "hardhat": "^2.1.1",
     "hardhat-abi-exporter": "^2.2.0",
+    "hardhat-dependency-compiler": "^1.1.1",
     "hardhat-deploy": "^0.7.0-beta.49",
     "mocha-junit-reporter": "^2.0.0",
     "solhint": "^3.3.4",
-    "solidity-coverage": "^0.7.16"
-  },
-  "dependencies": {
+    "solidity-coverage": "^0.7.16",
     "hardhat-deploy-ethers": "^0.3.0-beta.7"
   }
 }

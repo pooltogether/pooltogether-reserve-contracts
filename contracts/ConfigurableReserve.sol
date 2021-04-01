@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
-pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./IConfigurableReserve.sol";
 import "./IPrizePool.sol";
 
-///@title implementation of IConfigurable reserve
+/// @title Implementation of IConfigurable reserve
+/// @notice Provides an Ownable configurable reserve for prize pools. This includes an opt-out default rate for prize pools. 
+/// For flexibility this includes a specified withdraw Strategist address which can be set by the owner.
+/// The prize pool Reserve can withdrawn by the owner or the reserve strategist. 
 contract ConfigurableReserve is IConfigurableReserve, Ownable {
     
     /// @notice Storage of Reserve Rate Mantissa associated with a Prize Pool
@@ -27,7 +29,7 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @param source The source for which the reserve rate should be return.  These are normally prize pools.
     /// @return The reserve rate as a fixed point 18 number, like Ether.  A rate of 0.05 = 50000000000000000
     function reserveRateMantissa(address source) external override view returns (uint256){
-        if(prizePoolMantissas[source].useCustom == false){
+        if(!prizePoolMantissas[source].useCustom){
             return uint256(defaultReserveRateMantissa);
         }
         // else return the custom rate
@@ -56,6 +58,7 @@ contract ConfigurableReserve is IConfigurableReserve, Ownable {
     /// @notice Calls withdrawReserve on the Prize Pool
     /// @param prizePool The Prize Pool to withdraw reserve
     /// @param to The reserve transfer destination address
+    /// @return The amount of reserve withdrawn from the prize pool
     function withdrawReserve(address prizePool, address to) external override onlyOwnerOrWithdrawStrategist returns (uint256){
         return PrizePoolInterface(prizePool).withdrawReserve(to);
     }

@@ -3,6 +3,8 @@ require('hardhat-deploy')
 require('hardhat-deploy-ethers')
 require('hardhat-abi-exporter')
 require('solidity-coverage')
+require("hardhat-dependency-compiler")
+
 
 const networks = require('./hardhat.networks')
 
@@ -36,5 +38,10 @@ module.exports = {
     path: './abis',
     clear: true,
     flat: true
+  },
+  dependencyCompiler: {
+    paths:["@pooltogether/pooltogether-contracts"],
+    keep: true,
+    path: "./abis"
   }
 };

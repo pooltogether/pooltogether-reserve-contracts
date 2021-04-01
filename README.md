@@ -1,6 +1,8 @@
 # PoolTogether Reserve
 [![Coverage Status](https://coveralls.io/repos/github/pooltogether/pooltogether-reserve-contracts/badge.svg?branch=main)](https://coveralls.io/github/pooltogether/pooltogether-reserve-contracts?branch=main)
 
+[![CircleCI](https://circleci.com/gh/pooltogether/pooltogether-reserve-contracts.svg?style=svg)](https://circleci.com/gh/pooltogether/pooltogether-reserve-contracts)
+
 PoolTogether captures a portion of the yield produced by the prize pools as "reserve".  The percentage of yield that is captured is called the "reserve rate".
 
 Currently (before this implementation) there is a single, global reserve rate that is applied to all pools.  However, PoolTogether governance will like to set a higher reserve rate for governance-managed pools, and do not wish to affect community pools.
@@ -41,13 +43,32 @@ The actual reserve amount can be withdrawn from a prize pool by either the contr
  function withdrawReserve(address prizePool, address to) external override onlyOwnerOrWithdrawStrategist returns (uint256)
 ```
 
+# Setup
+To setup repo install with:
+`yarn`
+
+Setup environmental variables with:
+`cp .envrc.example .envrc`
+and fill `.envrc` with your own variables and api keys.
+
+Import the environmental variables with:
+`direnv allow`
 
 # To deploy
 ## Locally
 To deploy locally for development run:
 `yarn deploy localhost`
 
+## To a network
+Ensure HDWALLET_MNEMONIC is set in .envrc and run:
+`yarn deploy <network-name>`
+
+### To verify
+Ensure ETHERSCAN_API_KEY is set in .envrc and run:
+`yarn verify <network-name>`
+
 # Testing
+## Locally
 To test the contracts locally run:
 `yarn && yarn test`
 
@@ -56,7 +77,9 @@ To display contract coverage run:
 `yarn coverage`
 
 
+## To fork test
+After specifying the fork block in `hardhat.networks.js`, start the mainnet fork with:
+ `yarn start-fork`
 
-# Configurable Reserve Specification
-
-The interface [IConfigurableReserve.sol](./contracts/IConfigurableReserve.sol) implements the [ReserveInterface.sol](https://github.com/pooltogether/pooltogether-pool-contracts/blob/ba34ddfb7670c04d5c108e6ce485343b46b27a1e/contracts/reserve/ReserveInterface.sol).
+In another terminal window run:
+`yarn fork-run ./scripts/setupReserve.js`
