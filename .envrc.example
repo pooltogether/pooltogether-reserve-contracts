@@ -9,3 +9,6 @@ export ETHERSCAN_API_KEY=''
 
 # Required for forking
 export ALCHEMY_URL=''
+
+# Required for Polygon
+export POLYGON_URL=''
